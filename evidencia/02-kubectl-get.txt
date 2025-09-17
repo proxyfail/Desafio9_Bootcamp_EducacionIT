@@ -1,0 +1,9 @@
+$ kubectl get pods,svc -n my-app -l app.kubernetes.io/instance=my-app
+NAME                                               READY   STATUS    RESTARTS   AGE
+pod/my-app-app-template-nestjs-7d6cfbf9c9-wr7zv     1/1     Running   0          48s
+pod/my-app-mongodb-0                                1/1     Running   0          48s
+
+NAME                              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+service/my-app-app-template-nestjs ClusterIP   10.96.147.32   <none>        3000/TCP         48s
+service/my-app-mongodb             ClusterIP   10.96.216.84   <none>        27017/TCP        48s
+service/my-app-mongodb-headless    ClusterIP   None           <none>        27017/TCP        48s

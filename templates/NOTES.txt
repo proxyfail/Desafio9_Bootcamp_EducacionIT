@@ -1,0 +1,15 @@
+Gracias por instalar {{ .Chart.Name }}!
+
+1. Para revisar los pods:
+   kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2. Para acceder a la app (port-forward):
+   kubectl port-forward svc/{{ include "app-template-nestjs.fullname" . }} 8080:{{ .Values.service.port }}
+   Luego abre http://localhost:8080{{ .Values.app.healthPath }}
+
+3. Cadena de conexión MongoDB que usa la app:
+   {{- if and .Values.mongodb.enabled .Values.mongodb.auth.enabled }}
+   mongodb://{{ .Values.mongodb.auth.username }}:{{ .Values.mongodb.auth.password }}@{{ include "app-template-nestjs.mongodb.fullname" . }}:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.database }}
+   {{- else }}
+   mongodb://{{ include "app-template-nestjs.mongodb.fullname" . }}:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.database }}
+   {{- end }}

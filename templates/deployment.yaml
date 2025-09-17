@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app-template-nestjs.fullname" . }}
+  labels:
+    {{- include "app-template-nestjs.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "app-template-nestjs.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "app-template-nestjs.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "app-template-nestjs.fullname" . }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.app.containerPort }}
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "{{ .Values.service.port }}"
+            - name: MONGODB_URI
+              value: {{- if and .Values.mongodb.enabled .Values.mongodb.auth.enabled -}}
+                "mongodb://{{ .Values.mongodb.auth.username }}:{{ .Values.mongodb.auth.password }}@{{ include "app-template-nestjs.mongodb.fullname" . }}:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.database }}"
+              {{- else -}}
+                "mongodb://{{ include "app-template-nestjs.mongodb.fullname" . }}:{{ .Values.mongodb.service.port }}/{{ .Values.mongodb.auth.database }}"
+              {{- end }}
+          {{- if .Values.app.extraEnv }}
+          {{- range $e := .Values.app.extraEnv }}
+            - name: {{ $e.name }}
+              value: "{{ $e.value }}"
+          {{- end }}
+          {{- end }}
+          {{- if .Values.app.livenessProbe.enabled | default true }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.healthPath | default "/health" }}
+              port: http
+            initialDelaySeconds: {{ .Values.app.livenessProbe.initialDelaySeconds | default 20 }}
+            timeoutSeconds: {{ .Values.app.livenessProbe.timeoutSeconds | default 2 }}
+            periodSeconds: {{ .Values.app.livenessProbe.periodSeconds | default 10 }}
+          {{- end }}
+          {{- if .Values.app.readinessProbe.enabled | default true }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.healthPath | default "/health" }}
+              port: http
+            initialDelaySeconds: {{ .Values.app.readinessProbe.initialDelaySeconds | default 10 }}
+            timeoutSeconds: {{ .Values.app.readinessProbe.timeoutSeconds | default 2 }}
+            periodSeconds: {{ .Values.app.readinessProbe.periodSeconds | default 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}

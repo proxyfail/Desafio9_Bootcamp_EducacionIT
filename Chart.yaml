@@ -1,0 +1,6 @@
+apiVersion: v2
+name: app-template-nestjs
+description: Helm chart para desplegar la aplicación NestJS y MongoDB
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
